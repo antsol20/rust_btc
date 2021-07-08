@@ -8,7 +8,7 @@ fn main() {
     let args: Vec<String> = std::env::args().collect();
     if args.len() != 3{
         println!("Usage: rust_btc [start-date] [end-date]   note: dates are in format YYYY-MM-DD");
-        //return;
+        return;
     }
     let start_date_text = &args[1];
     let end_date_text = &args[2];
