@@ -1,4 +1,4 @@
-use chrono::{NaiveDate, Datelike};
+use chrono::{NaiveDate, Datelike, Weekday};
 use reqwest;
 use serde_json;
 use serde_json::Value;
@@ -10,11 +10,9 @@ fn main() {
         println!("Usage: rust_btc [start-date] [end-date]   note: dates are in format YYYY-MM-DD");
         //return;
     }
-    // let start_date_text = &args[1];
-    // let end_date_text = &args[2];
-    let start_date_text = "2021-05-28";
-    let end_date_text = "2021-06-30";
-
+    let start_date_text = &args[1];
+    let end_date_text = &args[2];
+    
     let suffix = "T00:00:00Z";
 
     let start = start_date_text.to_owned() + suffix;
@@ -48,14 +46,38 @@ fn main() {
 
     let date_fmt = "%Y-%m-%d";
 
+
+    let mut price_pairs:Vec<(f32,f32)> = vec![];
+    let mut price_pair:(f32,f32) = (0.0, 0.0);
+
     for entry in json  {
+
         let datestamp = &entry["timestamp"].as_str().unwrap()[..10];
         let week_day = NaiveDate::parse_from_str(datestamp, date_fmt).unwrap().weekday();
         let btc = entry["rate"].as_str().unwrap().parse::<f32>().unwrap();
 
-        println!("datestamp is {}, btc is {}, weekday is {}", datestamp, btc, week_day);
+        if week_day == Weekday::Fri{
+            price_pair.0 = btc;
+        }
+
+        if week_day == Weekday::Mon{
+            if price_pair.0 == 0.0{
+                continue;
+            }
+            price_pair.1 = btc;
+            price_pairs.push(price_pair);
+        }
+
     }
 
-    let cash: u32 = 100;
+    let mut cash: f32 = 100.0;
+
+    for prices in price_pairs{
+        println!("Start Cash {} Buy:{} Sell:{}", cash, prices.0, prices.1);
+        cash = cash * (prices.1/prices.0);
+        println!("End Cash {}", cash)
+    }
+
+
 
 }
